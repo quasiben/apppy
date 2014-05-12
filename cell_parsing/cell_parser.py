@@ -3,7 +3,9 @@ from IPython.nbformat import current as nbf
 import logging
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
-import pdb
+import re
+
+p = re.compile('# In\[\d*\]')
 
 def parse_into_cells(py_file,debug=True):
     if debug:
@@ -19,15 +21,14 @@ def parse_into_cells(py_file,debug=True):
         data = f.readlines()
 
         for line in data:
-            # log.debug(line)
-            if line.lower().rstrip() == '#cell':
+            #check line for string # In[012...]
+            if  p.match(line):
 
                 # If #cell start new cell
                 if in_cell==True:
                     log.debug(cell)
                     yield cell.strip()
                     cell = ''
-                    in_cell=False
 
                 in_cell = True
 
@@ -43,7 +44,6 @@ def parse_into_cells(py_file,debug=True):
 def convert(py_file, ipynb_file):
 
     #create new notebook
-
     nb = nbf.new_notebook()
     cells = list(map(nbf.new_code_cell,parse_into_cells(py_file)))
     nb['worksheets'].append(nbf.new_worksheet(cells=cells))
