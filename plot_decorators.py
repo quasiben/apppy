@@ -67,7 +67,12 @@ class Selector(object):
     	modal_body.set_css('overflow-y', 'scroll', 'overflow-x')
     	
     	# Get and format source code into an HTML widget.
-    	source_code = inspect.getsource(self._base_function)
+        code_to_get = (
+            self._base_function.original_func_code 
+            if hasattr(self._base_function, "original_func_code")
+            else self._base_function.func_code
+        )
+    	source_code = inspect.getsource(code_to_get)
     	highlighted_source = highlight(source_code, lexer, formatter)
     	html_widget = widgets.HTMLWidget(value=highlighted_source)
     	html_widget.set_css({'width': '580px',
@@ -83,12 +88,17 @@ class Selector(object):
     	# Notify the popup window that is controls the HTML widget.
     	popup.children = [html_widget]
     	display(popup)
-        del popup
 
+def code_wraps(function):
+    def decorator(other_function):
+        other_function.original_func_code = function.func_code
+        return other_function
+    return decorator
 
 # Bokeh scatter plot
 def dscatter(color="black", tools="pan,wheel_zoom,box_zoom,reset,resize"):
     def decorator(fn):
+        @code_wraps(fn)
         def make_plot(*args, **kwargs):
             x,y = fn(*args, **kwargs)
             bpl.scatter(x, y, color=color, tools=tools)
@@ -99,6 +109,7 @@ def dscatter(color="black", tools="pan,wheel_zoom,box_zoom,reset,resize"):
 # Basic HTML table from Pandas.
 def dtable():
    def decorator(fn):
+       @code_wraps(fn)
        def make_table(*args, **kwargs):
            display_html(fn(*args, **kwargs).to_html(), raw=True)
        return make_table
