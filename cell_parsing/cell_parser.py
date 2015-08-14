@@ -3,7 +3,7 @@ Utility functions for marking blocks for code to be translated into:
 1) cells for an ipython notebook
 2) files exported to /tmp/func1.py
 
-Feature 1) should be a the missing piece for a bidirection transport of
+Feature 1) should be the missing piece for a bidirectional transport of
 an ipython notebook to a python file and a python file to an ipython notebook
 .
 
